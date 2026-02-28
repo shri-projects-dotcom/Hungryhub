@@ -31,7 +31,21 @@ exports.getAllRecipes =async (req,res) =>{
     const recipes= await Recipe.find().populate("createdBy", "name email").sort({createdAt:-1});
     res.json(recipes);
   }catch (error){
-    console.log(error);
-    res.status(500).json({message:error})
+   // console.log(error);
+    res.status(500).json({message:"server error" });
   }
 };
+exports.getrecipeByID= async(req,res)=>{
+  try{
+    const recipe=await Recipe.findById(req.params.id).populate("createdBy","name email");
+    if(!recipe){
+      return res.status(404).jsoon({message:"Recipe not found"});
+    }
+    res.json(recipe);
+
+  }
+  catch(error){
+    res.status(500).json({message:"server error"});
+
+  }
+}
