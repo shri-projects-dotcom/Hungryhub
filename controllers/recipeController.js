@@ -32,7 +32,7 @@ exports.getAllRecipes =async (req,res) =>{
     const recipes= await Recipe.find().populate("createdBy", "name email").sort({createdAt:-1});
     res.json(recipes);
   }catch (error){
-   // console.log(error);
+  //  console.log(error);
     res.status(500).json({message:"server error" });
   }
 };
@@ -46,6 +46,7 @@ exports.getrecipeByID= async(req,res)=>{
 
   }
   catch(error){
+    // console.log(error);
     res.status(500).json({message:"server error"});
 
   }
@@ -96,3 +97,25 @@ exports.updateRecipe = async(req,res)=>{
 
   }
 };
+exports.searchRecipes = async (req,res)=>{
+  try{
+    const { ingredients } = req.query;
+    if(!ingredients){
+      return res.status(400).json({message:"please provide ingredients"});
+    }
+    //convert comma string into array
+    const ingredientsArray= ingredients.split(",").map(item => item.trim().toLowerCase());
+    const recipe = await Recipe.find({
+        "ingredients.name":{ $in:ingredientsArray.map(item=>new RegExp(item,'i')) }
+    }).populate("createdBy","name email");
+    if(recipe.length==0){
+        return res.status(404).json({message:"Does not have any recipes with these ingredients"});
+    }
+    res.json(recipe);
+
+  }
+  catch(error){
+    console.log(error);
+    res.status(500).json({message:"server error"});
+  }
+}
