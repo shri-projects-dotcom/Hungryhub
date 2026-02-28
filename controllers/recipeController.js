@@ -26,3 +26,12 @@ exports.addRecipe = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+exports.getAllRecipes =async (req,res) =>{
+  try{
+    const recipes= await Recipe.find().populate("createdBy", "name email").sort({createdAt:-1});
+    res.json(recipes);
+  }catch (error){
+    console.log(error);
+    res.status(500).json({message:error})
+  }
+};
