@@ -57,7 +57,7 @@ exports.deleteRecipe= async(req,res)=>{
     if(!recipe){
       return res.status(404).json({message:"Recipe not found"});
     }
-    if(recipe.createdBy.toString() !== req.user._id.toString()){
+    if(recipe.createdBy.toString() !== req.user._id.toString() && req.user.role !== "admin"){
       return res.status(401).json({message:"Not authorized to delete this recipe"});
     }
     await recipe.deleteOne();
