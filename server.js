@@ -4,7 +4,7 @@ const cors=require('cors')
 const connectDB=require("./config/db")
 const authroutes=require("./routes/authroutes")
 const recipeRoutes=require("./routes/recipeRoutes")
-
+const adminRoutes = require("./routes/adminRoutes")
 dotenv.config();
 const app=express();
 
@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth",authroutes)
 app.use("/api/recipes",recipeRoutes)
+app.use("/api/admin", adminRoutes)
 app.get("/",(req,res)=>{
     res.send("API is running")
 });
