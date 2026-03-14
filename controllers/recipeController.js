@@ -1,14 +1,26 @@
 const Recipe = require("../models/Recipe");
-
+const imagekit = require("../config/imageKit");
 // ADD RECIPE
 exports.addRecipe = async (req, res) => {
-  const { title, ingredients, description, instructions, cookingTime, servings, image } = req.body;
+  const { title, ingredients, description, instructions, cookingTime, servings } = req.body;
+  
 
   try {
     // Basic validation
     if (!title || !ingredients || !instructions || !cookingTime) {
       return res.status(400).json({ message: "Please fill all required fields" });
     }
+    let imageUrl = "";
+
+    if (req.file) {
+      const uploadedImage = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: Date.now() + "-" + req.file.originalname,
+      });
+
+      imageUrl = uploadedImage.url;
+    }
+
 
     const recipe = await Recipe.create({
       title,
@@ -17,7 +29,7 @@ exports.addRecipe = async (req, res) => {
       instructions,
       cookingTime,
       servings,
-      image,
+      image:imageUrl,
       createdBy: req.user._id, // comes from auth middleware
     });
 
@@ -118,4 +130,58 @@ exports.searchRecipes = async (req,res)=>{
     console.log(error);
     res.status(500).json({message:"server error"});
   }
-}
+};
+exports.toggleLikeRecipe = async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    const userId = req.user._id;
+
+    const alreadyLiked = recipe.likes.includes(userId);
+
+    if (alreadyLiked) {
+      // Unlike
+      recipe.likes = recipe.likes.filter(
+        (id) => id.toString() !== userId.toString()
+      );
+    } else {
+      // Like
+      recipe.likes.push(userId);
+    }
+
+    await recipe.save();
+
+    res.json({
+      message: alreadyLiked ? "Recipe unliked" : "Recipe liked",
+      totalLikes: recipe.likes.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.getTopRecipes = async (req, res) => {
+  try {
+    const topRecipes = await Recipe.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size:{$ifNull:[ "$likes",[]]}}
+        }
+      },
+      {
+        $sort: { likesCount: -1 }
+      },
+      {
+        $limit: 5
+      }
+    ]);
+
+    res.json(topRecipes);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};

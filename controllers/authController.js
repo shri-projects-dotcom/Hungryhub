@@ -11,7 +11,7 @@ const generateToken = (id) => {
 
 // REGISTER
 exports.registerUser = async (req, res) => {
-  const { name, email, password  } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     // Check if user exists
@@ -30,7 +30,6 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      
     });
 
     res.status(201).json({
